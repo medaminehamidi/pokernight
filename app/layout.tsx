@@ -39,7 +39,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <div className='relative flex min-h-screen flex-col'>
             <SiteHeader />
               <div className="flex lg:grid lg:grid-cols-5">
-                <div className="w-full lg:col-span-4 border-l">
+                <div className="w-full lg:col-span-4 border-t-l">
                   <div className='flex-1'>{children}</div>
                 </div>
               </div>
