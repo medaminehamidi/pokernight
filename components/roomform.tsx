@@ -838,7 +838,7 @@ export default function RoomForm() {
           ? (
             <div className="h-full w-full flex flex-col items-center justify-center ">
               <Skull className="w-20 h-20 mb-5" />
-              <p className="text-3xl leading-10 text-center">You need more than 2 players to start the game</p>
+              <p className="text-3xl leading-10 text-center">You need two or more players to start the game ...</p>
             </div>)
           : (<div className="h-full w-full flex flex-col items-center justify-center ">
             <Dices className="w-20 h-20 mb-5" />
