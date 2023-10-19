@@ -267,13 +267,13 @@ export default function RoomForm() {
           gameState.highbet = 0
         } else if (currentPhase === 'river' && passPhase) {
           // End river phase after dealing the fifth community card (river)
+          gameState.community_cards = revealObjects(communityCards, 5)
           gameState.game_status = gameStates.showdown;
           updatedPlayers = gameState.players.map((player: any) => {
             return { ...player, action: 'unset', bet: 0 };
 
           })
           gameState.highbet = 0
-          // passDealerToNextPlayer()
           determineWinnerAndUpdateBalance()
         }
         // else if (currentPhase === 'showdown' && passPhase) {
@@ -635,7 +635,7 @@ export default function RoomForm() {
     const activePlayers = gameState.players.filter((player: any) => !player.folded);
 
     // Determine the best hand among active players
-    let winningPlayer: any = null;
+    let winningPlayer: any
     let bestHandRank = Hand.solve(convertCardsToString([...activePlayers[0].hand, ...gameState.community_cards]));
 
     for (const player of activePlayers) {
@@ -671,10 +671,7 @@ export default function RoomForm() {
 
       if (updateError) {
         console.error('Error updating game state:', updateError);
-      } else {
-        // Game state updated successfully
-        setGameState(updatedGameState);
-      }
+      } 
       setLoading(false)
     }
   };
@@ -772,7 +769,7 @@ export default function RoomForm() {
   }
   return (
     <>
-      {user ? <div className="h-full w-full">
+      {user && gameState && gameState.players.length >= 2 ? <div className="h-full w-full">
         <div className="h-fit w-full grid gap-2 grid-cols-3">
           {
             gameState !== null && gameState.players.filter((user: any) => user.index !== userData.index).map((user: any, key: any) => {
@@ -812,6 +809,7 @@ export default function RoomForm() {
                       bet={getCurrentUserData(gameState, userData.index).bet}
                       highbet={gameState.highbet}
                     />
+                    {userData.index === 1 && <p>{gameState.game_status}</p>}
                   </>)
                 : (
                   <div className="h-[60vh] w-full flex justify-center items-center">
@@ -835,27 +833,33 @@ export default function RoomForm() {
               </div>
             )}
         </div>
-      </div> :
-        <div className="h-full w-full flex flex-col items-center justify-center ">
-          <Dices className="w-20 h-20 mb-5" />
-          <p className="text-3xl leading-10 
-            bg-gradient-to-r bg-clip-text  text-transparent 
-            from-indigo-500 via-purple-500 to-indigo-500
-            animate-text">Poker Night</p>
-          <Link
-            href={siteConfig.links.signup}
-            className={cn(buttonVariants({ variant: 'default' }), 'p-0 w-full mt-10')}
-          >
-            <p className="text-ms mr-2">Make an account</p>
-          </Link>
-          <Link
-            href={siteConfig.links.signin}
-            className={cn(buttonVariants({ variant: 'outline' }), 'p-0  w-full mt-5')
-            }
-          >
-            <p className="text-ms mr-2">Log In</p>
-          </Link>
-        </div>
+      </div>
+        : (user
+          ? (
+            <div className="h-full w-full flex flex-col items-center justify-center ">
+              <Skull className="w-20 h-20 mb-5" />
+              <p className="text-3xl leading-10 text-center">You need more than 2 players to start the game</p>
+            </div>)
+          : (<div className="h-full w-full flex flex-col items-center justify-center ">
+            <Dices className="w-20 h-20 mb-5" />
+            <p className="text-3xl leading-10 
+        bg-gradient-to-r bg-clip-text  text-transparent 
+        from-indigo-500 via-purple-500 to-indigo-500
+        animate-text">Poker Night</p>
+            <Link
+              href={siteConfig.links.signup}
+              className={cn(buttonVariants({ variant: 'default' }), 'p-0 w-full mt-10')}
+            >
+              <p className="text-ms mr-2">Make an account</p>
+            </Link>
+            <Link
+              href={siteConfig.links.signin}
+              className={cn(buttonVariants({ variant: 'outline' }), 'p-0  w-full mt-5')
+              }
+            >
+              <p className="text-ms mr-2">Log In</p>
+            </Link>
+          </div>))
       }
     </>
   )
