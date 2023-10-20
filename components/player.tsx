@@ -23,9 +23,11 @@ type PlayerProps = {
   resetGame: any,
   handleFold: any
 }
-const renderActionButtonText = (highBet: number, betInputValue: number) => {
+const renderActionButtonText = (highBet: number, betInputValue: number, chips: number) => {
   if ((highBet === 0) && (betInputValue === 0)) {
     return 'Check'
+  } else if ((chips === 0 && betInputValue > 0)) {
+    return 'All-In'
   } else if ((highBet === betInputValue)) {
     return 'Call'
   } else if ((highBet === 0) && (betInputValue > highBet)) {
@@ -56,19 +58,21 @@ export default function Player({ chips, cards, dealer, deal, handEvaluation, pas
       <div className="w-full flex items-center justify-center mt-4">
         {cards && cards.map((card: any, key: any) => <DeckCard key={key} suit={card.suit} cardFace={card.cardFace} hidden={false} />)}
       </div>
-      <div className="mt-4 flex items-center justify-center">
-        <CornerRightUp />
-        <p className="ml-2">Highest Bet : {highbet}</p>
+      <div className="mt-4 flex items-center justify-around">
+        <div className="flex text-xs items-center justify-center">
+          <CornerRightUp />
+          <p className="ml-2">Highest Bet : {highbet}</p>
+        </div>
+        <div className="flex text-xs items-center justify-center">
+          <BadgePercent />
+          <p className="ml-2">Bet : {bet}</p>
+        </div>
+        <div className="flex text-xs items-center justify-center">
+          <CircleDollarSign />
+          <p className="ml-2">Chips : {myChips}</p>
+        </div>
       </div>
-      <div className="mt-4 flex items-center justify-center">
-        <BadgePercent />
-        <p className="ml-2">Bet : {bet}</p>
-      </div>
-      <div className="mt-4 flex items-center justify-center">
-        <CircleDollarSign />
-        <p className="ml-2">Chips : {myChips}</p>
-      </div>
-      {(gamePhase === gameStates.showdown || gamePhase === gameStates.river) && <div className="mt-4 flex items-center justify-center">
+      {(gamePhase === gameStates.showdown || gamePhase === gameStates.river) && <div className="flex mt-2 text-xs items-center justify-center">
         <Hand />
         <p className="ml-2">{handEvaluation}</p>
       </div>}
@@ -89,9 +93,9 @@ export default function Player({ chips, cards, dealer, deal, handEvaluation, pas
             <>
               <div className="mt-4 flex items-center justify-between">
                 <Button disabled={loading || bet < highbet} onClick={() => {
-                  passTurn(index, renderActionButtonText(highbet, bet), bet)
+                  passTurn(index, renderActionButtonText(highbet, bet, myChips), bet)
                 }}>
-                  {renderActionButtonText(highbet, bet)}
+                  {renderActionButtonText(highbet, bet, myChips)}
                 </Button>
                 <Button onClick={() => handleFold()} disabled={loading}>
                   Fold

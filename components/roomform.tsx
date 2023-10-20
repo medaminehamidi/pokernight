@@ -41,8 +41,10 @@ export default function RoomForm() {
     const deck = generateDeck(generateDeckOfCards());
     const players = gameState.players.map((player: any) => ({
       ...player,
-      folded: false,
-      hand: [deck.pop(), deck.pop()] // Deal two cards to each player
+      folded: player.chips === 0,
+      allIn: false,
+      totalBets: 0,
+      hand: player.chips === 0 ? [] : [deck.pop(), deck.pop()] // Deal two cards to each player
     }));
 
     const communityCards = [deck.pop(), deck.pop(), deck.pop(), deck.pop(), deck.pop()]; // Deal five community cards
@@ -65,7 +67,7 @@ export default function RoomForm() {
     setLoading(false)
   }
   const passDealerToNextPlayer = async (gameData: any): Promise<any> => {
-
+    const activePlayers = gameData.players.filter((player: any) => !player.folded);
     // Find the current dealer
     const currentDealerIndex = gameData.players.findIndex((player: any) => player.isdealer);
 
@@ -73,13 +75,11 @@ export default function RoomForm() {
     gameData.players[currentDealerIndex].isdealer = false;
 
     // Determine the index of the next player
-    const nextDealerIndex = (currentDealerIndex + 1) % gameData.players.length;
+    const nextDealerIndex = (currentDealerIndex + 1) % activePlayers.length;
 
     // Set dealer status to true for the next player
-    gameData.players[nextDealerIndex].isdealer = true;
-    console.warn(gameData.currentTurnPlayerIndex)
-    gameData.currentTurnPlayerIndex = gameState.players[nextDealerIndex].index
-    console.warn(gameData.currentTurnPlayerIndex)
+    activePlayers[nextDealerIndex].isdealer = true;
+    gameData.currentTurnPlayerIndex = activePlayers[nextDealerIndex].index
     // Update game state with the new dealer information
     const updatedGameState = {
       ...gameData,
@@ -91,7 +91,6 @@ export default function RoomForm() {
   };
   const markRandomPlayerAsDealer = async (): Promise<void> => {
     setLoading(true)
-    console.warn('hellooo problems')
     // Fetch current game state from Supabase
 
     // Randomly select a player as the dealer
@@ -235,6 +234,7 @@ export default function RoomForm() {
     const passGamePhase = async () => {
       setLoading(true)
       if (gameState !== null) {
+        const currentDealerIndex = gameState.players.findIndex((player: any) => player.isdealer);
         let updatedPlayers = gameState.players
         const currentPhase = gameState.game_status
         const communityCards = gameState.community_cards
@@ -242,8 +242,10 @@ export default function RoomForm() {
           // End preflop phase after dealing hole cards to players
           gameState.community_cards = revealObjects(communityCards, 3)
           gameState.game_status = gameStates.flop;
+          if (currentDealerIndex) { gameState.currentTurnPlayerIndex = gameState.players[currentDealerIndex]?.index }
           updatedPlayers = gameState.players.map((player: any) => {
-            return { ...player, action: 'unset', bet: 0 };
+            const totalBetsInHand = player.totalBets + player.bet
+            return { ...player, action: 'unset', bet: 0, totalBets: totalBetsInHand };
 
           })
           gameState.highbet = 0
@@ -251,8 +253,10 @@ export default function RoomForm() {
           // End flop phase after dealing the first three community cards (flop)
           gameState.community_cards = revealObjects(communityCards, 4)
           gameState.game_status = gameStates.turn;
+          if (currentDealerIndex) { gameState.currentTurnPlayerIndex = gameState.players[currentDealerIndex]?.index }
           updatedPlayers = gameState.players.map((player: any) => {
-            return { ...player, action: 'unset', bet: 0 };
+            const totalBetsInHand = player.totalBets + player.bet
+            return { ...player, action: 'unset', bet: 0, totalBets: totalBetsInHand };
 
           })
           gameState.highbet = 0
@@ -260,8 +264,10 @@ export default function RoomForm() {
           // End turn phase after dealing the fourth community card (turn)
           gameState.community_cards = revealObjects(communityCards, 5)
           gameState.game_status = gameStates.river;
+          if (currentDealerIndex) { gameState.currentTurnPlayerIndex = gameState.players[currentDealerIndex]?.index }
           updatedPlayers = gameState.players.map((player: any) => {
-            return { ...player, action: 'unset', bet: 0 };
+            const totalBetsInHand = player.totalBets + player.bet
+            return { ...player, action: 'unset', bet: 0, totalBets: totalBetsInHand };
 
           })
           gameState.highbet = 0
@@ -269,12 +275,14 @@ export default function RoomForm() {
           // End river phase after dealing the fifth community card (river)
           gameState.community_cards = revealObjects(communityCards, 5)
           gameState.game_status = gameStates.showdown;
+          if (currentDealerIndex) { gameState.currentTurnPlayerIndex = gameState.players[currentDealerIndex]?.index }
+          determineWinnerAndUpdateBalance()
           updatedPlayers = gameState.players.map((player: any) => {
-            return { ...player, action: 'unset', bet: 0 };
+            const totalBetsInHand = player.totalBets + player.bet
+            return { ...player, action: 'unset', bet: 0, totalBets: totalBetsInHand };
 
           })
           gameState.highbet = 0
-          determineWinnerAndUpdateBalance()
         }
         // else if (currentPhase === 'showdown' && passPhase) {
 
@@ -351,7 +359,7 @@ export default function RoomForm() {
     // Mark the current player as ready
     const updatedPlayers = gameData.players.map((player: any) => {
       if (player.index === currentPlayerIndex) {
-        return { ...player, ready: true, chips: 2000, bet: 0, action: 'unset' };
+        return { ...player, ready: true, chips: 200, bet: 0, totalBets: 0, action: 'unset' };
       }
       return player;
     });
@@ -556,6 +564,16 @@ export default function RoomForm() {
         case 'Fold':
           currentPlayer.action = 'Fold';
           break;
+        case 'All-In':
+          if (betAmount) {
+            currentPlayer.action = 'All-In';
+            currentPlayer.allIn = true
+            currentPlayer.chips -= betAmount;
+            currentPlayer.bet = betAmount;
+            gameState.pot += betAmount;
+            gameState.highbet = betAmount;
+          }
+          break;
         default:
           // Invalid action, do nothing
           break;
@@ -577,7 +595,7 @@ export default function RoomForm() {
 
       // Pass the turn to the next player
       let nextPlayerIndex = (gameState.players.findIndex((player: any) => player.index === currentPlayerIndex) + 1) % gameState.players.length;
-      while (gameState.players[nextPlayerIndex].folded) {
+      while (gameState.players[nextPlayerIndex].folded || gameState.players[nextPlayerIndex].allIn) {
         nextPlayerIndex = (nextPlayerIndex + 1) % gameState.players.length;
       }
       gameState.currentTurnPlayerIndex = gameState.players[nextPlayerIndex].index;
@@ -608,7 +626,7 @@ export default function RoomForm() {
     return false;
   }
   const checkAllPlayersActed = (gameData: any): boolean => {
-    const activePlayers = gameData.players.filter((player: any) => !player.folded)
+    const activePlayers = gameData.players.filter((player: any) => (!player.folded && !player.allIn))
 
     if (activePlayers.length === 0) {
       return true;
@@ -648,32 +666,61 @@ export default function RoomForm() {
       }
     }
 
-    if (winningPlayer) {
-      // Calculate the total pot size
-      const totalPot = gameState.pot;
+    // Calculate the total pot size
+    const totalPot = gameState.pot;
+    if (winningPlayer.allIn) {
+      let sidePot = 0;
 
-      // Update the winning player's balance by adding the pot to their current balance
-      winningPlayer.chips += totalPot;
+      for (const player of activePlayers) {
+        if (player.allIn) {
+          sidePot += player.totalBets;
+        }
+      }
 
-      // Update game state with the updated player balances and reset the pot
-      const updatedGameState = {
-        ...gameState,
-        winnerplayerindex: winningPlayer?.index,
-        players: gameState.players.map((player: any) => (player.index === winningPlayer?.index ? winningPlayer : player)),
-        pot: 0, // Reset the pot after the winner takes the money
-      };
+      // Deduct the side pot from total bets to determine the main pot
+      const mainPot = totalPot - sidePot;
 
-      // Save updated game state to Supabase
-      const { error: updateError } = await supabase
-        .from('games')
-        .update(updatedGameState)
-        .eq('id', 1);
+      // Distribute side pot among all-in players
+      for (const player of activePlayers) {
+        if (player.allIn) {
+          player.chips += player.totalBets;
+        } else {
+          // Player bet more than the side pot, they win the additional chips from all-in players
+          player.chips += Math.min(winningPlayer.totalBets, player.totalBets);
+        }
+      }
 
-      if (updateError) {
-        console.error('Error updating game state:', updateError);
-      } 
-      setLoading(false)
+      // Distribute main pot among players who are not all in
+      const playersNotAllIn = activePlayers.filter((player: any) => !player.allIn);
+
+      for (const player of playersNotAllIn) {
+        // Distribute chips from the main pot equally among players who are not all in
+        player.chips += mainPot / playersNotAllIn.length;
+      }
+
+      // Give the remaining chips (if any) from main pot to the winning player
+      winningPlayer.chips += mainPot % playersNotAllIn.length;
+    } else {
+      winningPlayer.chips += totalPot
     }
+    // Update game state with the updated player balances and reset the pot
+    const updatedGameState = {
+      ...gameState,
+      winnerplayerindex: winningPlayer?.index,
+      players: gameState.players.map((player: any) => (player.index === winningPlayer?.index ? winningPlayer : player)),
+      pot: 0, // Reset the pot after the winner takes the money
+    };
+
+    // Save updated game state to Supabase
+    const { error: updateError } = await supabase
+      .from('games')
+      .update(updatedGameState)
+      .eq('id', 1);
+
+    if (updateError) {
+      console.error('Error updating game state:', updateError);
+    }
+    setLoading(false)
   };
 
   const resetGameStatusToPreflop = async () => {
@@ -693,7 +740,9 @@ export default function RoomForm() {
     gameData.game_status = gameStates.preflop;
 
     gameData.players.forEach((player: any) => {
+      player.folded = player.chips === 0;
       player.hand = [];
+      player.bet = 0
       player.action = 'unset'
     });
     // Update game state with the new game status
@@ -770,7 +819,7 @@ export default function RoomForm() {
   return (
     <>
       {user && gameState && gameState.players.length >= 2 ? <div className="h-full w-full">
-        <div className="h-fit w-full grid gap-2 grid-cols-3">
+        <div className="h-fit w-full grid gap-2 grid-cols-2">
           {
             gameState !== null && gameState.players.filter((user: any) => user.index !== userData.index).map((user: any, key: any) => {
               return (
@@ -791,6 +840,8 @@ export default function RoomForm() {
                       isdealer={getCurrentUserData(gameState, userData.index).isdealer}
                       isTurn={gameState && gameState.currentTurnPlayerIndex === userData.index}
                       isWinner={gameState && gameState.winnerplayerindex === userData.index}
+                      winnerData={getCurrentUserData(gameState, gameState.winnerplayerindex)}
+                      winnerHandEvaluation={evaluateCards(gameState, getCurrentUserData(gameState, gameState.winnerplayerindex))}
                     />
                     <Player
                       resetGame={resetGameStatusToPreflop}
@@ -843,9 +894,9 @@ export default function RoomForm() {
           : (<div className="h-full w-full flex flex-col items-center justify-center ">
             <Dices className="w-20 h-20 mb-5" />
             <p className="text-3xl leading-10 
-        bg-gradient-to-r bg-clip-text  text-transparent 
-        from-indigo-500 via-purple-500 to-indigo-500
-        animate-text">Poker Night</p>
+              bg-gradient-to-r bg-clip-text  text-transparent 
+              from-indigo-500 via-purple-500 to-indigo-500
+              animate-text">Poker Night</p>
             <Link
               href={siteConfig.links.signup}
               className={cn(buttonVariants({ variant: 'default' }), 'p-0 w-full mt-10')}
