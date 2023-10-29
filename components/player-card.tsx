@@ -1,15 +1,7 @@
 "use client"
 import * as React from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { BadgePercent, Crown } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 
 type PlayerCardProps = {
   name: string,
@@ -19,59 +11,30 @@ type PlayerCardProps = {
   bet: number,
   isPlayerTurn: boolean,
   hiddenCards: boolean,
-  isWinner: boolean
+  isWinner: boolean,
+  chips: any,
+  folded: boolean
 }
 
-export default function PlayerCard({ name, cards, bet, dealer, isPlayerTurn, hiddenCards, isWinner }: PlayerCardProps) {
+export default function PlayerCard({ name, cards, bet, dealer, isPlayerTurn, hiddenCards, isWinner, chips, folded }: PlayerCardProps) {
 
-  const renderUnicodeSuitSymbol = (suit: any) => {
-    switch (suit) {
-      case ('Heart'): return '\u2665';
-      case ('Diamond'): return '\u2666';
-      case ('Spade'): return '\u2660';
-      case ('Club'): return '\u2663';
-      default: throw Error('Unfamiliar String Recieved in Suit Unicode Generation');
-    }
-  }
   return (
-    <Card className={cn("w-full", `${isPlayerTurn ? 'border-yellow-300' : ''}`)}>
-      <CardHeader className="relative flex flex-row items-start justify-start p-2">
-        {dealer ? <div className="h-2 w-2 absolute top-1 left-1 rounded-full bg-red-500" /> : null}
-        <div className="absolute top-2 right-2 ">
-          {isWinner && <Crown className="text-yellow-300 w-3 h-3" />}
-        </div>
-        <div className="ml-2 w-full">
-          <CardTitle className="text-base">{name}</CardTitle>
-          <div className="mt-2 text-slate-300 w-full flex items-center justify-start text-xs"><p>Bet : {bet}</p></div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-row items-start justify-between p-2">
-        {!hiddenCards
-          ? (
-            <>
-              {cards && cards.map((card: any, key: any) =>
-                <div key={key} className={`flex flex-col justify-center items-center bg-white text-[1rem] h-[50px] w-[35px] border mx-px my-0`}>
-                  <h6
-                    style={{ color: `${(card.suit === 'Diamond' || card.suit === 'Heart') ? 'red' : 'black'}` }}>
-                    {`${card.cardFace} ${renderUnicodeSuitSymbol(card.suit)}`}
-                  </h6>
-                </div>)}
-            </>)
-          : (
-            <>
-              <div
-                className={`flex flex-col justify-center items-center text-[1rem] h-[50px] w-[35px] border mx-px my-0 bg-center bg-no-repeat bg-cover bg-red-500 bg-[url("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/PLAYING_CARD_BACK.svg/620px-PLAYING_CARD_BACK.svg.png")]`}>
-              </div>
-              <div
-                className={`flex flex-col justify-center items-center text-[1rem] h-[50px] w-[35px] border mx-px my-0 bg-center bg-no-repeat bg-cover bg-red-500 bg-[url("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/PLAYING_CARD_BACK.svg/620px-PLAYING_CARD_BACK.svg.png")]`}>
-              </div>
-            </>
-          )}
-        {/* <div
-          className={`flex flex-col justify-center items-center text-[1rem] h-[50px] w-[35px] border mx-px my-0 bg-center bg-no-repeat bg-cover bg-red-500 bg-[url("https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/PLAYING_CARD_BACK.svg/620px-PLAYING_CARD_BACK.svg.png")]`}>
-        </div> */}
-      </CardContent>
-    </Card>
+    <div className={cn("w-full flex flex-col items-center justify-center relative", folded || chips === 0 ? 'opacity-30' : 'opacity-100')}>
+      <div className="relative">
+        {isPlayerTurn && <div className="absolute text-white w-6 h-6 flex items-center justify-center top-[-15px] left-[18px]">
+          <ChevronDown />
+        </div>}
+        <img src={`https://api.dicebear.com/7.x/big-ears/svg?seed=${name}`} className='h-16 w-16' />
+        {dealer && <div className="absolute bg-white border-2 border-black rounded-full w-6 h-6 flex items-center justify-center right-1 top-11">
+          <p className="text-black font-bold text-xs">D</p>
+        </div>}
+      </div>
+      <p className="text-xs mt-4 text-center w-full text-gray-500">{name}</p>
+      <p className="text-base mt-2 text-center w-full">{chips}</p>
+      {bet !== 0 && <div className="bg-[#232228] absolute top-36 min-w-[24px] w-auto rounded-full flex items-center justify-center">
+        <p className="text-yellow-400 text-xs">{bet}</p>
+      </div>}
+    </div>
   )
 }
 

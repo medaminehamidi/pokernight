@@ -14,35 +14,18 @@ type TableProps = {
 }
 
 export default function Table({ pot, cards, isdealer, isTurn, isWinner, winnerData, winnerHandEvaluation }: TableProps) {
-
+  const card = [
+    ...cards
+  ]
   return (
     <>
-      <div className="mt-5 w-full flex-col flex items-center justify-center">
-        <div>
-          {winnerData && (isWinner ? (<div className="flex mt-2 text-sm items-center justify-center">
-            <Crown className="text-yellow-300" />
-            <p className="ml-2">You Won</p>
-          </div>) : (
-            <div className="flex mt-2 text-sm items-center justify-center">
-              <Trophy className="text-red-600" />
-              <p className="ml-2 text-red-600">{winnerData.name} won with {winnerHandEvaluation} </p>
-            </div>
-
-          ))}
-        </div>
-        <div className="flex mt-2" >
-          {isdealer && <CircleDotDashed className="text-red-600 mr-2" />}
-          {isTurn && <RedoDot className="text-yellow-600" />}
-        </div>
-        <div className="flex mt-2 text-sm items-center justify-center">
-          <Wallet2 />
-          <p className="ml-2">Pot : {pot}</p>
-        </div>
-      </div>
-      <div className="mt-2 w-full flex-col flex items-center justify-center">
-      </div>
-      <div className="w-full flex items-center justify-around mt-4">
-        {cards.map((card: any, key: any) => <DeckCard key={key} suit={card.suit} cardFace={card.cardFace} hidden={card.hidden} />)}
+      <div className="flex flex-col items-center justify-around mt-4 relative w-[350px]">
+        {cards.length ? <div className={`absolute z-0 w-[75px] left-[20px]`}> <DeckCard index={0} suit={card[0].suit} cardFace={card[0].cardFace} hidden={card[0].hidden} /> </div> : null}
+        {cards.length ? <div className={`absolute z-10 w-[75px] left-[80px]`}> <DeckCard index={1} suit={card[1].suit} cardFace={card[1].cardFace} hidden={card[1].hidden} /> </div> : null}
+        {cards.length ? <div className={`absolute z-20 w-[75px] left-[140px]`}> <DeckCard index={2} suit={card[2].suit} cardFace={card[2].cardFace} hidden={card[2].hidden} /> </div> : null}
+        {cards.length ? <div className={`absolute z-30 w-[75px] left-[200px]`}> <DeckCard index={3} suit={card[3].suit} cardFace={card[3].cardFace} hidden={card[3].hidden} /> </div> : null}
+        {cards.length ? <div className={`absolute z-40 w-[75px] left-[260px]`}> <DeckCard index={4} suit={card[4].suit} cardFace={card[4].cardFace} hidden={card[4].hidden} /> </div> : null}
+        <p className="absolute top-12 left-80 text-lg text-white">{pot}</p>
       </div>
     </>
   )

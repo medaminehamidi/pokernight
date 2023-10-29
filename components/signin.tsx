@@ -9,6 +9,7 @@ import * as React from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { useUserStore } from '@/app/store'
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -16,16 +17,25 @@ export default function SignIn({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [authError, setAuthError] = React.useState('')
   const router = useRouter()
+  
+  const updateUser = useUserStore((state) => state.updateUser)
   const handleFormSubmit = async (email: string, password: string) => {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
       if (!error) {
+        const results = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+      if (results?.data && results?.data.at(0)) {
+        updateUser({username: results?.data.at(0).username, id: results?.data.at(0).id, email: results?.data?.at(0).email, index: results?.data.at(0).index})
+      }
         router.push('/')
       } else {
         setAuthError(error.message)

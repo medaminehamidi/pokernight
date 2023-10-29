@@ -817,17 +817,17 @@ export default function RoomForm({ id }: any) {
   }
   return (
     <>
-      {user && gameState && gameState.players.length >= 2 ? <div className="h-[85vh] flex flex-col justify-between items-center  w-full">
-        <div className="h-fit w-full grid gap-2 grid-cols-5">
+      {user && gameState && gameState.players.length >= 2 ? <div className="h-full w-full">
+        <div className="h-fit w-full grid gap-2 grid-cols-2">
           {
             gameState !== null && gameState.players.filter((user: any) => user.index !== userData.index).map((user: any, key: any) => {
               return (
-                <PlayerCard folded={user.folded} isWinner={gameState && gameState.winnerplayerindex === user.index} chips={user.chips} hiddenCards={gameState.game_status !== gameStates.showdown} isPlayerTurn={gameState.currentTurnPlayerIndex === user.index} cards={user.hand} name={user.name} email={user.email} dealer={user.isdealer} key={key} bet={user.bet} />
+                <PlayerCard isWinner={gameState && gameState.winnerplayerindex === user.index} hiddenCards={gameState.game_status !== gameStates.showdown} isPlayerTurn={gameState.currentTurnPlayerIndex === user.index} cards={user.hand} name={user.name} email={user.email} dealer={user.isdealer} key={key} bet={user.bet} />
               )
             })
           }
         </div>
-        <>
+        <div>
           {currentPlayerReady
             ? (
               allReady
@@ -842,29 +842,25 @@ export default function RoomForm({ id }: any) {
                       winnerData={getCurrentUserData(gameState, gameState.winnerplayerindex)}
                       winnerHandEvaluation={evaluateCards(gameState, getCurrentUserData(gameState, gameState.winnerplayerindex))}
                     />
-                    <div>
-                      <Player
-                        resetGame={resetGameStatusToPreflop}
-                        handleFold={handleFold}
-                        loading={loading}
-                        gamePhase={gameState.game_status}
-                        cardsDelt={gameState !== null && userData !== null && gameState.players[0]?.hand?.length > 0}
-                        myturn={gameState && gameState.currentTurnPlayerIndex === userData.index}
-                        deal={handleDeal}
-                        dealer={getCurrentUserData(gameState, userData.index).isdealer}
-                        chips={getCurrentUserData(gameState, userData.index).chips}
-                        name={userData.username}
-                        index={userData.index}
-                        cards={getCurrentUserData(gameState, userData.index).hand}
-                        passTurn={playerPassTurn}
-                        handEvaluation={evaluateCards(gameState, userData)}
-                        bet={getCurrentUserData(gameState, userData.index).bet}
-                        highbet={gameState.highbet}
-                      />
-                      {userData.index === 1 && <p>{gameState.game_status}</p>}
-                    </div>
-                  </>
-                )
+                    <Player
+                      resetGame={resetGameStatusToPreflop}
+                      handleFold={handleFold}
+                      loading={loading}
+                      gamePhase={gameState.game_status}
+                      cardsDelt={gameState !== null && userData !== null && gameState.players[0]?.hand?.length > 0}
+                      myturn={gameState && gameState.currentTurnPlayerIndex === userData.index}
+                      deal={handleDeal}
+                      dealer={getCurrentUserData(gameState, userData.index).isdealer}
+                      chips={getCurrentUserData(gameState, userData.index).chips}
+                      index={userData.index}
+                      cards={getCurrentUserData(gameState, userData.index).hand}
+                      passTurn={playerPassTurn}
+                      handEvaluation={evaluateCards(gameState, userData)}
+                      bet={getCurrentUserData(gameState, userData.index).bet}
+                      highbet={gameState.highbet}
+                    />
+                    {userData.index === 1 && <p>{gameState.game_status}</p>}
+                  </>)
                 : (
                   <div className="h-[60vh] w-full flex justify-center items-center">
                     <div className={'grid gap-6'} >
@@ -886,7 +882,7 @@ export default function RoomForm({ id }: any) {
                 </div>
               </div>
             )}
-        </>
+        </div>
       </div>
         :
         <div className="h-full w-full flex flex-col items-center justify-center ">

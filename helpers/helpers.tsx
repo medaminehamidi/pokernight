@@ -1,3 +1,5 @@
+import { Club, Diamond, Heart, Spade } from "lucide-react";
+
 export const renderUnicodeSuitSymbol = (suit: any) => {
   switch (suit) {
     case ('Heart'): return '\u2665';
@@ -7,7 +9,15 @@ export const renderUnicodeSuitSymbol = (suit: any) => {
     default: throw Error('Unfamiliar String Recieved in Suit Unicode Generation');
   }
 }
-
+export const renderCardSymbol = (suit: any) => {
+  switch (suit) {
+    case ('Heart'): return Heart;
+    case ('Diamond'): return Diamond;
+    case ('Spade'): return Spade;
+    case ('Club'): return Club;
+    default: return Club;
+  }
+}
 
 export const totalNumCards = 52;
 export const suits = ['Heart', 'Spade', 'Club', 'Diamond'];

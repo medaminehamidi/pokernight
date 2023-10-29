@@ -64,7 +64,7 @@ export function UserNav() {
         <Button variant='ghost' className='flex justify-around '>
           <Avatar className='h-8 w-8'>
             <AvatarImage
-              src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.email}`}
+              src={`https://api.dicebear.com/7.x/big-ears/svg?seed=${userData?.username}`}
               alt={`@${userData?.name}`}
             />
             <AvatarFallback>{userData?.full_name}</AvatarFallback>

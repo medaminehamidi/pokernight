@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { useSupabase } from './SupabaseSessionProvider'
 import { buttonVariants } from './ui/button'
 import { UserNav } from './user-nav'
-import { ChevronRight, Plus, PlusCircle } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 
 export function SiteHeader() {
   const pathName = usePathname()
